@@ -3,6 +3,7 @@ variables:
 
 # Obtenir quelques infos avant de faire quoi que ce soit, c'est toujours bon à prendre
 before_script:
+- env
 - whoami
 - docker info
 
