@@ -13,4 +13,4 @@ RUN pip install -r requirements.txt
 
 # 3] On est prêts, on lance tout
 WORKDIR /oshde-orchestrator/src
-ENTRYPOINT ['python', '-u', 'main.py']
+ENTRYPOINT ["python", "-u", "main.py"]
