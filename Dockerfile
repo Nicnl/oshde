@@ -1,13 +1,16 @@
 FROM python:2.7
 
-# Intégration des sources
+MAINTAINER nicnl25@gmail.com
+
+# 1] Intégration des sources
 RUN mkdir /oshde-orchestrator
 WORKDIR /oshde-orchestrator
 COPY src src
-COPY requirements.txt requirements.txt
 
-# Installation des requirements python
+# 2] Installation des requirements python
+COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
-# On est prêts, on lance tout
-ENTRYPOINT python -u main.py
+# 3] On est prêts, on lance tout
+WORKDIR /oshde-orchestrator/src
+ENTRYPOINT ['python', '-u', 'main.py']
