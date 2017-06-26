@@ -10,4 +10,4 @@ COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
 # On est prêts, on lance tout
-CMD ['python', '-u', 'main.py']
+ENTRYPOINT python -u main.py
