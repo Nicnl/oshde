@@ -7,7 +7,7 @@ orchestrator_name = os.getenv('OSHDE_ORCHESTRATOR_NAME', prefix + 'orchestrator'
 network = os.getenv('OSHDE_NETWORK', prefix + 'network')
 
 # Si des containers existent déjà: ne pas s'arrêter et les tuer
-kill_policy = os.getenv('OSHDE_KILL_POLICY', '1') == 1
+kill_policy = os.getenv('OSHDE_KILL_POLICY', '1') == '1'
 
 # STOP: Si le réseau existe déjà: s'arrêter
 # RECREATE: Si le réseau existe déjà, le recréer
