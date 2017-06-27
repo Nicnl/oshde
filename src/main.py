@@ -64,10 +64,9 @@ for domain_dir in flh.list_dirs(config.dynvirtualhosts_path):
 
             # Fichier de conf: port HTTP à transférer à Traefik
             if 'http_port' not in oshde_conf:
-                print('http_port should be in configuration file! Aborting...')
-                print('')
-                continue
-            oshde_conf_http_port = int(oshde_conf['http_port']) # Fixme: Vérifier type
+                oshde_conf_http_port = None
+            else:
+                oshde_conf_http_port = int(oshde_conf['http_port']) # Fixme: Vérifier type
 
             # Fichier de conf: volumes à monter
             oshde_conf_volumes = {}
@@ -156,12 +155,18 @@ with open('traefik.toml') as file:
     for line in [line.rstrip() for line in file.readlines()]:
         if line == '# OSHDE-BACKENDS':
             for container_to_run in containers_to_run:
+                if container_to_run['http_port'] is None:
+                    continue
+
                 traefik_conf.append('  [backends.%s_back]' % container_to_run['name'])
                 traefik_conf.append('    [backends.%s_back.servers.server1]' % container_to_run['name'])
                 traefik_conf.append('      url = "http://%s:%d"' % (container_to_run['name'], container_to_run['http_port']))
                 traefik_conf.append('')
         elif line == '# OSHDE-FRONTENDS':
             for container_to_run in containers_to_run:
+                if container_to_run['http_port'] is None:
+                    continue
+
                 traefik_conf.append('  [frontends.%s_front]' % container_to_run['name'])
                 traefik_conf.append('    backend = "%s_back"' % container_to_run['name'])
                 traefik_conf.append('    passHostHeader = true')
