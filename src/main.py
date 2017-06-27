@@ -189,7 +189,7 @@ traefik_container = cth.run_detach_and_remove(client, 'traefik',
         }
     },
     ports={
-        '80/tcp': 80  # Fixme: utiliser variable d'environnement
+        '80/tcp': config.traefik_port
     }
 )
 
