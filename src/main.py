@@ -204,6 +204,9 @@ traefik_container = cth.run_detach_and_remove(client, 'traefik',
     },
     ports={
         '80/tcp': config.traefik_port
+    },
+    labels={
+        'oshde': 'oshde'  # Fixme: Déplacer ça vers fichier de configuration
     }
 )
 
