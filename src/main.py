@@ -165,7 +165,7 @@ with open('traefik.toml') as file:
 
                 traefik_conf.append('  [backends.%s_back]' % container_to_run['name'])
                 traefik_conf.append('    [backends.%s_back.servers.server1]' % container_to_run['name'])
-                traefik_conf.append('      url = "http://%s:%d"' % (container_to_run['name'], container_to_run['http_port']))
+                traefik_conf.append('      url = "http://%s:%d"' % (container_to_run['traefik_domain'], container_to_run['http_port']))
                 traefik_conf.append('')
         elif line == '# OSHDE-FRONTENDS':
             for container_to_run in containers_to_run:
