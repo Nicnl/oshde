@@ -14,7 +14,12 @@ kill_policy = os.getenv('OSHDE_KILL_POLICY', '1') == 1
 # REUSE: Si le réseau existe déjà, le réutiliser
 network_policy = os.getenv('OSHDE_NETWORK_POLICY', 'REUSE')
 
-dynvirtualhosts_host = '/' + os.getenv('OSHDE_DYNVIRTUALHOSTS_HOST').rstrip('/').rstrip('\\').replace(':', '').replace('\\', '/').lstrip('/')
+# Pour tout supprimer et nettoyer
+delete_mode = os.getenv('OSHDE_DELETE_MODE', '0') == '1'
+
+dynvirtualhosts_host = '/'
+if not delete_mode:
+    dynvirtualhosts_host += os.getenv('OSHDE_DYNVIRTUALHOSTS_HOST').rstrip('/').rstrip('\\').replace(':', '').replace('\\', '/').lstrip('/')
 
 dynvirtualhosts_path = os.getenv('OSHDE_DYNVIRTUALHOSTS_PATH', '/dynvirtualhosts').rstrip('/')
 
@@ -22,6 +27,3 @@ dynvirtualhosts_path = os.getenv('OSHDE_DYNVIRTUALHOSTS_PATH', '/dynvirtualhosts
 dynvirtualhosts_config_file_name = os.getenv('OSHDE_DYNVIRTUALHOSTS_CONFIG_FILE_NAME', '.oshde.yml')
 
 traefik_port = int(os.getenv('OSHDE_TRAEFIK_PORT', '80'))
-
-# Pour tout supprimer et nettoyer
-delete_mode = os.getenv('OSHDE_DELETE_MODE', '0') == '1'
