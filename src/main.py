@@ -150,6 +150,8 @@ for container_to_run in containers_to_run:
     logs_gatherer = ContainerLogsGatherer(client, container.id, logs_queue, container_to_run['color'])
     logs_gatherer.start()
 
+    print('%s  => %s%s' % (container_to_run['color'], container_to_run['traefik_domain'], color_helper.reset))
+
 print('# Generating configuration and starting traefik...')
 
 # Génération de la configuration Traefik
