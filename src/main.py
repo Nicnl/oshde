@@ -24,6 +24,7 @@ mmc.check_networks(client)
 print('')
 
 if config.delete_mode:
+    print('\033[32mEverything was deleted successfully!')
     exit(0)
 
 logs_queue = Queue()
