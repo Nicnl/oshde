@@ -13,3 +13,5 @@ kill_policy = bool(os.getenv('OSHDE_KILL_POLICY', 'true'))
 # RECREATE: Si le réseau existe déjà, le recréer
 # REUSE: Si le réseau existe déjà, le réutiliser
 network_policy = os.getenv('OSHDE_NETWORK_POLICY', 'REUSE')
+
+dynvirtualhosts_path = os.getenv('OSHDE_DYNVIRTUALHOSTS_PATH', '/dynvirtualhosts').rstrip('/')
