@@ -136,11 +136,14 @@ for container_to_run in containers_to_run:
     container = cth.run_detach_and_remove(client, container_to_run['docker_image_tag'],
         auto_remove=True,
         remove=True,
-        name=container_to_run['name'],
+        name=container_to_run['traefik_domain'],
         detach=True,
         network=config.network,
         volumes=container_to_run['volumes'],
-        environment=container_to_run['environment']
+        environment=container_to_run['environment'],
+        labels={
+            'oshde': 'oshde'  # Fixme: Déplacer ça vers fichier de configuration
+        }
     )
 
     # Démrrage des threads de collecte des logs

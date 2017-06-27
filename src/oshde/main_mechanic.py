@@ -47,5 +47,6 @@ def check_kill(docker_client):
         print('Existing containers should be killed...')
         cth.kill_containers(docker_client, lambda container:
             container.name != config.orchestrator_name and  # On ne kill pas l'orchestrateur (nous-même)
-            container.name.startswith(config.prefix)  # Mais que ceux ayant le préfixe
+            'oshde' in container.labels and  container.labels['oshde'] == 'oshde' # Mais que ceux de notre système
+            # Fixme: déplacer oshde vers fichier de conf
         )
