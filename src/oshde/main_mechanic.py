@@ -13,11 +13,8 @@ def check_networks(docker_client):
         print('The network %s doesn\'t exists!' % config.network)
     else:
         print('The network %s already exists!' % existing_network.name)
-        if config.network_policy == 'STOP':
-            print('  => The network policy asked to stop...')
-            exit(1)
-        elif config.network_policy == 'RECREATE':
-            print('  => The network policy asked to recreate...')
+        if config.network_policy == 'RECREATE' or config.delete_mode:
+            print('  => The network policy asked to %s...' % ('delete everything' if config.delete_mode else 'recreate'))
             print('  => Deleting existing network...')
             existing_network.remove()
 
@@ -26,6 +23,9 @@ def check_networks(docker_client):
             print('  => Network removed!')
 
             existing_network = None
+        elif config.network_policy == 'STOP':
+            print('  => The network policy asked to stop...')
+            exit(1)
         elif config.network_policy == 'REUSE':
             print('  => The network policy asked to reuse...')
         else:
@@ -33,7 +33,7 @@ def check_networks(docker_client):
             exit(1)
 
 
-    if existing_network is None:
+    if existing_network is None and not config.delete_mode:
         print('  => Creating network...')
         docker_client.networks.create(config.network,
             driver='bridge',
@@ -43,7 +43,7 @@ def check_networks(docker_client):
         print('  => Network created!')
 
 def check_kill(docker_client):
-    if config.kill_policy:
+    if config.kill_policy or config.delete_mode:
         print('Existing containers should be killed...')
         cth.kill_containers(docker_client, lambda container:
             container.name != config.orchestrator_name and  # On ne kill pas l'orchestrateur (nous-même)
