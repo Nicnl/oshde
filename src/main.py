@@ -23,6 +23,9 @@ print('')
 mmc.check_networks(client)
 print('')
 
+if config.delete_mode:
+    exit(0)
+
 logs_queue = Queue()
 
 # Fixme: Pas très efficace, à remplacer par un itérateur type os.walk('.').next()[1]
