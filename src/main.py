@@ -45,7 +45,6 @@ for domain_dir in flh.list_dirs(config.dynvirtualhosts_path):
 
     # Lecture du fichier de conf
     # Todo: Déplacer la lecture du fichier de conf vers un fichier externe
-    oshde_conf_http_port = None
     with open(oshde_conf_path, 'r') as stream:
         try:
             oshde_conf = yaml.load(stream)
@@ -121,7 +120,10 @@ for domain_dir in flh.list_dirs(config.dynvirtualhosts_path):
         'docker_image_tag': docker_image_tag,
         'name': config.prefix + dockerized_domain_dir,
         'color': color,
-        'volumes': oshde_conf_volumes
+        'volumes': oshde_conf_volumes,
+        'environment': oshde_conf_environment,
+        'traefik_domain': domain_dir,
+        'http_port': oshde_conf_http_port
     })
 
 print('# Starting containers...')
@@ -135,7 +137,9 @@ for container_to_run in containers_to_run:
         name=container_to_run['name'],
         detach=True,
         network=config.network,
-        volumes=container_to_run['volumes']
+        volumes=container_to_run['volumes'],
+        environment=container_to_run['environment'],
+        ports={'80/tcp': 9999}
     )
 
     # Démrrage des threads de collecte des logs
