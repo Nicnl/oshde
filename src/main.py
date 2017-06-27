@@ -9,7 +9,6 @@ import oshde.color_helper as color_helper
 import os
 from queue import Queue
 from oshde.classes.container_logs_gatherer import ContainerLogsGatherer
-
 import docker.models.containers
 
 # Fixme: Virer cette ligne quand https://github.com/docker/docker-py/pull/1545 aura été mergé
@@ -26,6 +25,7 @@ print('')
 logs_queue = Queue()
 
 # Fixme: Pas très efficace, à remplacer par un itérateur type os.walk('.').next()[1]
+containers_to_run = []
 for domain_dir in flh.list_dirs(config.dynvirtualhosts_path):
     color = color_helper.assign_color()
     dockerfile_path = os.path.join(config.dynvirtualhosts_path, domain_dir, 'Dockerfile')
@@ -46,16 +46,26 @@ for domain_dir in flh.list_dirs(config.dynvirtualhosts_path):
     )
     print('')
 
-    container = cth.run_detach_and_remove(client, docker_image_tag,
+    containers_to_run.append({
+        'docker_image_tag': docker_image_tag,
+        'name': config.prefix + dockerized_domain_dir,
+        'color': color
+    })
+
+for container_to_run in containers_to_run:
+    container = cth.run_detach_and_remove(client, container_to_run['docker_image_tag'],
         auto_remove=True,
         remove=True,
-        name=config.prefix + dockerized_domain_dir,
-        detach=True
+        name=container_to_run['name'],
+        detach=True,
+        network=config.network
     )
 
-    logs_gatherer = ContainerLogsGatherer(client, container.id, logs_queue, color)
+    logs_gatherer = ContainerLogsGatherer(client, container.id, logs_queue, container_to_run['color'])
     logs_gatherer.start()
 
+print('# Starting containers...')
 print('')
 while True:
     print(logs_queue.get(block=True, timeout=None))
+
