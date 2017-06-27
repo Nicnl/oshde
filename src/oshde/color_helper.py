@@ -1,12 +1,12 @@
 
 colors = [
-    '\033[31m', # Red
-    '\033[32m', # Green
-    '\033[33m', # Yellow
-    '\033[34m', # Blue
-    '\033[35m', # Magenta
-    '\033[36m', # Cyan
-    '\033[90m', # Gray
+    '\033[91m', # Red
+    '\033[92m', # Green
+    '\033[93m', # Yellow
+    '\033[94m', # Blue
+    '\033[95m', # Magenta
+    '\033[96m', # Cyan
+    '\033[37m', # Gray
 ]
 
 reset = '\033[0m'
