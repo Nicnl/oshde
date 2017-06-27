@@ -14,4 +14,9 @@ kill_policy = bool(os.getenv('OSHDE_KILL_POLICY', 'true'))
 # REUSE: Si le réseau existe déjà, le réutiliser
 network_policy = os.getenv('OSHDE_NETWORK_POLICY', 'REUSE')
 
+dynvirtualhosts_host = '/' + os.getenv('OSHDE_DYNVIRTUALHOSTS_HOST').rstrip('/').rstrip('\\').replace(':', '').replace('\\', '/').lstrip('/')
+
 dynvirtualhosts_path = os.getenv('OSHDE_DYNVIRTUALHOSTS_PATH', '/dynvirtualhosts').rstrip('/')
+
+# Nom du fichier de conf pour: expositions de ports, montages de volumes, variables d'environnement
+dynvirtualhosts_config_file_name = os.getenv('OSHDE_DYNVIRTUALHOSTS_CONFIG_FILE_NAME', '.oshde.yml')
