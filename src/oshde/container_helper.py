@@ -21,7 +21,7 @@ def kill_containers(docker_client, should_kill_rule):
 
     print('  Searching for containers...')
     for container in docker_client.containers.list():
-        if not should_kill_rule(container.name):
+        if not should_kill_rule(container):
             continue
 
         # Attention, le .kill() n'envoie que le signal mais n'attends pas la fin réelle du container
