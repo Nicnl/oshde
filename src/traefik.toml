@@ -1,0 +1,12 @@
+logLevel = "DEBUG"
+
+defaultEntryPoints = ["http"]
+[entryPoints]
+  [entryPoints.http]
+  address = ":80"
+
+[file]
+[backends]
+# OSHDE-BACKENDS
+[frontends]
+# OSHDE-FRONTENDS

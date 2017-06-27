@@ -127,7 +127,6 @@ for domain_dir in flh.list_dirs(config.dynvirtualhosts_path):
     })
 
 print('# Starting containers...')
-print('')
 
 for container_to_run in containers_to_run:
     # Lancement des containers fraîchement buildés
@@ -138,13 +137,61 @@ for container_to_run in containers_to_run:
         detach=True,
         network=config.network,
         volumes=container_to_run['volumes'],
-        environment=container_to_run['environment'],
-        ports={'80/tcp': 9999}
+        environment=container_to_run['environment']
     )
 
     # Démrrage des threads de collecte des logs
     logs_gatherer = ContainerLogsGatherer(client, container.id, logs_queue, container_to_run['color'])
     logs_gatherer.start()
+
+print('# Generating configuration and starting traefik...')
+
+# Génération de la configuration Traefik
+traefik_conf = []
+with open('traefik.toml') as file:
+    for line in [line.rstrip() for line in file.readlines()]:
+        if line == '# OSHDE-BACKENDS':
+            for container_to_run in containers_to_run:
+                traefik_conf.append('  [backends.%s_back]' % container_to_run['name'])
+                traefik_conf.append('    [backends.%s_back.servers.server1]' % container_to_run['name'])
+                traefik_conf.append('      url = "http://%s:%d"' % (container_to_run['name'], container_to_run['http_port']))
+                traefik_conf.append('')
+        elif line == '# OSHDE-FRONTENDS':
+            for container_to_run in containers_to_run:
+                traefik_conf.append('  [frontends.%s_front]' % container_to_run['name'])
+                traefik_conf.append('    backend = "%s_back"' % container_to_run['name'])
+                traefik_conf.append('    passHostHeader = true')
+                traefik_conf.append('    [frontends.%s_front.routes.%s]' % (container_to_run['name'], container_to_run['name']))
+                traefik_conf.append('      rule = "Host:%s"' % container_to_run['traefik_domain'])
+                traefik_conf.append('')
+        else:
+            traefik_conf.append(line)
+
+traefik_path = os.path.join(config.dynvirtualhosts_path, config.prefix + 'traefik')
+if not os.path.exists(traefik_path):
+    os.makedirs(traefik_path)
+
+traefik_toml_path = os.path.join(traefik_path, 'traefik.toml')
+with open(traefik_toml_path, 'w') as traefik_toml:
+    traefik_toml.write('\n'.join(traefik_conf))
+
+# Démarrage de Traefik
+traefik_container = cth.run_detach_and_remove(client, 'traefik',
+    auto_remove=True,
+    remove=True,
+    name=config.prefix + 'traefik',
+    detach=True,
+    network=config.network,
+    volumes={
+        os.path.join(config.dynvirtualhosts_host, config.prefix + 'traefik', 'traefik.toml'): {
+            'bind': '/etc/traefik/traefik.toml',
+            'mode': 'ro'
+        }
+    },
+    ports={
+        '80/tcp': 80  # Fixme: utiliser variable d'environnement
+    }
+)
 
 print('# Displaying queued logs...')
 print('')
