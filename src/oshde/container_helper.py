@@ -25,7 +25,6 @@ def kill_containers(docker_client, should_kill_rule):
             continue
 
         # Attention, le .kill() n'envoie que le signal mais n'attends pas la fin réelle du container
-        print('    Found %s' % container.name)
         async_kill(docker_client, container.id)
         killed_containers.append(container)
 
@@ -36,6 +35,7 @@ def kill_containers(docker_client, should_kill_rule):
         container = random.choice(killed_containers)
         if not container_exists(docker_client, container.id):
             killed_containers.remove(container)
+            print('    Killed %s' % container.name)
         else:
             time.sleep(0.02)
 
