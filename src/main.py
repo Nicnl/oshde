@@ -1,6 +1,7 @@
 # coding=utf-8
 
 import docker
+import time
 import yaml
 import oshde.main_mechanic as mmc
 import oshde.container_helper as cth
@@ -9,7 +10,7 @@ import oshde.config as config
 import oshde.color_helper as color_helper
 import os
 from queue import Queue
-from oshde.classes.container_logs_gatherer import ContainerLogsGatherer
+from oshde.classes.async_container_runner import AsyncContainerRunner
 import docker.models.containers
 
 # Fixme: Virer cette ligne quand https://github.com/docker/docker-py/pull/1545 aura été mergé
@@ -133,7 +134,8 @@ print('# Starting containers...')
 
 for container_to_run in containers_to_run:
     # Lancement des containers fraîchement buildés
-    container = cth.run_detach_and_remove(client, container_to_run['docker_image_tag'],
+
+    async_container_runner = AsyncContainerRunner(docker_client=client, logs_queue=logs_queue, container_to_run=container_to_run,
         auto_remove=True,
         remove=True,
         name=container_to_run['traefik_domain'],
@@ -142,14 +144,13 @@ for container_to_run in containers_to_run:
         volumes=container_to_run['volumes'],
         environment=container_to_run['environment'],
         labels={
-            'oshde': 'oshde'  # Fixme: Déplacer ça vers fichier de configuration
+            'oshde': 'oshde' # Fixme: Déplacer ça vers fichier de configuration
         }
     )
 
-    # Démrrage des threads de collecte des logs
-    logs_gatherer = ContainerLogsGatherer(client, container.id, logs_queue, container_to_run['color'])
-    logs_gatherer.start()
+    async_container_runner.start()
 
+    time.sleep(0.25)
     print('%s  => %s%s' % (container_to_run['color'], container_to_run['traefik_domain'], color_helper.reset))
 
 print('# Generating configuration and starting traefik...')
