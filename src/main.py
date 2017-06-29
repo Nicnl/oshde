@@ -116,7 +116,8 @@ for domain_dir in flh.list_dirs(config.dynvirtualhosts_path):
         tag=docker_image_tag,
         nocache=False,
         pull=True,
-        stream=False
+        stream=False,
+        rm=True
     )
     print('')
 
