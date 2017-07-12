@@ -69,6 +69,37 @@ for domain_dir in flh.list_dirs(config.dynvirtualhosts_path):
             else:
                 oshde_conf_http_port = int(oshde_conf['http_port']) # Fixme: Vérifier type
 
+            # Fichier de conf: ouvertures de ports à la mano
+            oshde_manual_ports = {}
+            if 'ports' in oshde_conf:
+                for line in oshde_conf['ports']:  # Fixme: Vérifier types
+                    port_opening_splited = line.split(':')
+                    port_opening_protocol = 'tcp'
+
+                    nb_ports = len(port_opening_splited)
+                    if '/' in port_opening_splited[nb_ports-1]:
+                        port_opening_splited[nb_ports-1], port_opening_protocol = port_opening_splited[nb_ports-1].split('/')
+
+                    if port_opening_protocol not in ['tcp', 'udp']:
+                        print('Wtf while port protocol! Aborting...')
+                        print('')
+                        continue
+
+                    if len(port_opening_splited) == 1:
+                        port_opening_host = int(port_opening_splited[0])
+                        port_opening_container = int(port_opening_splited[0])
+                    elif len(port_opening_splited) == 2:
+                        port_opening_host = int(port_opening_splited[0])
+                        port_opening_container = int(port_opening_splited[1])
+                    else:
+                        print('Wtf while ports! Aborting...')
+                        print('')
+                        continue
+
+                    oshde_manual_ports['%d/%s' % (port_opening_container, port_opening_protocol)] = str(port_opening_host)
+
+
+
             # Fichier de conf: volumes à monter
             oshde_conf_volumes = {}
             if 'volumes' in oshde_conf:
@@ -128,7 +159,8 @@ for domain_dir in flh.list_dirs(config.dynvirtualhosts_path):
         'volumes': oshde_conf_volumes,
         'environment': oshde_conf_environment,
         'traefik_domain': domain_dir,
-        'http_port': oshde_conf_http_port
+        'http_port': oshde_conf_http_port,
+        'ports': oshde_manual_ports
     })
 
 print('# Starting containers...')
@@ -144,6 +176,7 @@ for container_to_run in containers_to_run:
         network=config.network,
         volumes=container_to_run['volumes'],
         environment=container_to_run['environment'],
+        ports=container_to_run['ports'],
         labels={
             'oshde': 'oshde' # Fixme: Déplacer ça vers fichier de configuration
         }
