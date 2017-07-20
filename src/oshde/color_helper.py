@@ -13,6 +13,7 @@ reset = '\033[0m'
 
 assign_counter = 0
 
+
 def assign_color():
     global assign_counter
 

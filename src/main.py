@@ -18,7 +18,7 @@ docker.models.containers.RUN_HOST_CONFIG_KWARGS += ['auto_remove']
 
 client = docker.from_env()
 
-mmc.check_kill(client)
+mmc.check_stop(client, kill=True)
 print('')
 
 mmc.check_networks(client)
@@ -67,7 +67,7 @@ for domain_dir in flh.list_dirs(config.dynvirtualhosts_path):
             if 'http_port' not in oshde_conf:
                 oshde_conf_http_port = None
             else:
-                oshde_conf_http_port = int(oshde_conf['http_port']) # Fixme: Vérifier type
+                oshde_conf_http_port = int(oshde_conf['http_port'])  # Fixme: Vérifier type
 
             # Fichier de conf: ouvertures de ports à la mano
             oshde_manual_ports = {}
@@ -248,5 +248,8 @@ traefik_container = cth.run_detach_and_remove(client, 'traefik',
 print('# Displaying queued logs...')
 print('')
 
-while True:
-    print(logs_queue.get(block=True, timeout=None))
+try:
+    while True:
+        print(logs_queue.get(block=True, timeout=None))
+except KeyboardInterrupt:
+    mmc.check_stop(client, kill=False)

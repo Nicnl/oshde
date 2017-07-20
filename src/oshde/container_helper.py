@@ -8,11 +8,13 @@ import six
 from docker.models.images import Image
 from docker.utils.json_stream import json_stream
 from oshde import color_helper
-from .classes.async_container_killer import AsyncContainerKiller
+from .classes.async_container_stopper import AsyncContainerStopper
 
-def async_kill(docker_client, container_id):
-    async_killer = AsyncContainerKiller(docker_client, container_id)
-    async_killer.start()
+
+def async_stop(docker_client, container_id, kill=False):
+    async_stopper = AsyncContainerStopper(docker_client, container_id, kill)
+    async_stopper.start()
+
 
 def container_exists(docker_client, container_id):
     try:
@@ -21,33 +23,35 @@ def container_exists(docker_client, container_id):
     except docker.errors.NotFound:
         return False
 
-def kill_containers(docker_client, should_kill_rule):
-    killed_containers = []
+
+def stop_containers(docker_client, filter_rule, kill=False):
+    stopped_containers = []
 
     print('  Searching for containers...')
     for container in docker_client.containers.list():
-        if not should_kill_rule(container):
+        if not filter_rule(container):
             continue
 
-        # Attention, le .kill() n'envoie que le signal mais n'attends pas la fin réelle du container
-        async_kill(docker_client, container.id)
-        killed_containers.append(container)
+        # Attention, le .kill()/.stop() n'envoie que le signal mais n'attends pas forcément la fin réelle du container
+        async_stop(docker_client, container.id, kill)
+        stopped_containers.append(container)
 
     # Du coup on attends nous-même comme des gros sagouins
-    total_killed_containers = len(killed_containers)
+    total_stopped_containers = len(stopped_containers)
 
-    while len(killed_containers) > 0:
-        container = random.choice(killed_containers)
+    while len(stopped_containers) > 0:
+        container = random.choice(stopped_containers)
         if not container_exists(docker_client, container.id):
-            killed_containers.remove(container)
-            print('    Killed %s' % container.name)
+            stopped_containers.remove(container)
+            print('    %s %s' % ('Killed' if kill else 'Stopped', container.name))
         else:
             time.sleep(0.02)
 
-    if total_killed_containers == 0:
+    if total_stopped_containers == 0:
         print('  => No containers found!')
     else:
-        print('  => All %d containers have been successfully killed!' % total_killed_containers)
+        print('  => All %d containers have been successfully %s!' % (total_stopped_containers, 'killed' if kill else 'stopped'))
+
 
 def build_and_print(docker_client, print_name, print_color, **kwargs):
     resp = docker_client.api.build(**kwargs)
@@ -74,6 +78,7 @@ def build_and_print(docker_client, print_name, print_color, **kwargs):
         last_event = chunk
 
     raise docker.errors.BuildError(last_event or 'Unknown')
+
 
 # Fixme: Virer cette fonction quand https://github.com/docker/docker-py/pull/1545 aura été mergé
 def run_detach_and_remove(docker_client, image, command=None, stdout=True, stderr=False, remove=False, **kwargs):

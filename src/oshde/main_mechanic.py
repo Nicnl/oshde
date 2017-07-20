@@ -4,6 +4,7 @@ import oshde.container_helper as cth
 import oshde.network_helper as nth
 import time
 
+
 def check_networks(docker_client):
     existing_network = nth.find_network(docker_client, lambda network:
         network.name == config.network
@@ -32,7 +33,6 @@ def check_networks(docker_client):
             print('  => The network policy \'%s\' is unknown!' % config.network_policy)
             exit(1)
 
-
     if existing_network is None and not config.delete_mode:
         print('  => Creating network...')
         docker_client.networks.create(config.network,
@@ -42,11 +42,13 @@ def check_networks(docker_client):
         )
         print('  => Network created!')
 
-def check_kill(docker_client):
-    if config.kill_policy or config.delete_mode:
-        print('Existing containers should be killed...')
-        cth.kill_containers(docker_client, lambda container:
+
+def check_stop(docker_client, force=False, kill=False):
+    if force or config.kill_policy or config.delete_mode:
+        print('')
+        print('Existing containers should be %s...' % 'killed' if kill else 'stopped')
+        cth.stop_containers(docker_client, lambda container:
             container.name != config.orchestrator_name and  # On ne kill pas l'orchestrateur (nous-même)
-            'oshde' in container.labels and  container.labels['oshde'] == 'oshde' # Mais que ceux de notre système
+            'oshde' in container.labels and container.labels['oshde'] == 'oshde' # Mais que ceux de notre système
             # Fixme: déplacer oshde vers fichier de conf
-        )
+        , kill=kill)
