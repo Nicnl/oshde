@@ -5,5 +5,4 @@ docker run --rm --name oshde-orchestrator \
 -v `pwd`:/dynvirtualhosts \
 -e OSHDE_DYNVIRTUALHOSTS_HOST=`pwd` \
 -e OSHDE_DELETE_MODE=$1 \
-oshde-dev:latest
-#hub.nicnl.com/oshde/orchestrator/orchestrator:latest
+hub.nicnl.com/oshde/orchestrator/orchestrator:latest
