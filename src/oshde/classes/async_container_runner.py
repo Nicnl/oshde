@@ -4,6 +4,7 @@ import oshde.color_helper as color_helper
 import oshde.container_helper as cth
 from threading import Thread
 
+
 class AsyncContainerRunner(Thread):
     def __init__(self, docker_client, logs_queue, container_to_run, **kwargs):
         Thread.__init__(self)

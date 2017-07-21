@@ -11,6 +11,7 @@ import oshde.color_helper as color_helper
 import os
 from queue import Queue
 from oshde.classes.async_container_runner import AsyncContainerRunner
+from oshde.classes.async_container_checker import AsyncContainerChecker
 import docker.models.containers
 
 # Fixme: Virer cette ligne quand https://github.com/docker/docker-py/pull/1545 aura été mergé
@@ -165,6 +166,9 @@ for domain_dir in flh.list_dirs(config.dynvirtualhosts_path):
 
 print('# Starting containers...')
 
+async_container_checker = AsyncContainerChecker(client, logs_queue, containers_to_run)
+async_container_checker.start()
+
 for container_to_run in containers_to_run:
     # Lancement des containers fraîchement buildés
 
@@ -253,3 +257,4 @@ try:
         print(logs_queue.get(block=True, timeout=None))
 except KeyboardInterrupt:
     mmc.check_stop(client, kill=False)
+    async_container_checker.ask_stop()
