@@ -256,5 +256,6 @@ try:
     while True:
         print(logs_queue.get(block=True, timeout=None))
 except KeyboardInterrupt:
-    mmc.check_stop(client, kill=False)
     async_container_checker.ask_stop()
+    async_container_checker.join()
+    mmc.check_stop(client, kill=False)
