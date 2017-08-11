@@ -233,7 +233,7 @@ with open('traefik.toml') as file:
                     traefik_conf.append('  [frontends.%s_front_extra_%d]' % (container_to_run['name'], i))
                     traefik_conf.append('    backend = "%s_back"' % container_to_run['name'])
                     traefik_conf.append('    passHostHeader = true')
-                    traefik_conf.append('    [frontends.%s_front_extra_%d.routes.%s]' % (container_to_run['name'], i, container_to_run['name']))
+                    traefik_conf.append('    [frontends.%s_front_extra_%d.routes.%s_extra_%d]' % (container_to_run['name'], i, container_to_run['name'], i))
                     traefik_conf.append('      rule = "%s"' % extra_rule)
                     traefik_conf.append('')
 
