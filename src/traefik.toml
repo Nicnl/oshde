@@ -4,6 +4,7 @@ defaultEntryPoints = ["http"]
 [entryPoints]
   [entryPoints.http]
   address = ":80"
+  compress = false
 
 [file]
 [backends]
