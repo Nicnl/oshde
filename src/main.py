@@ -131,6 +131,11 @@ for domain_dir in flh.list_dirs(config.dynvirtualhosts_path):
                         'mode': mode
                     }
 
+            extra_hosts = []
+            if 'extra_hosts' in oshde_conf:
+                for extra_host in oshde_conf['extra_hosts']:  # Fixme: Vérifier types
+                    extra_hosts += [extra_host]
+
             # Fichier de conf: variables d'environnement
             oshde_conf_environment = {}
             if 'environment' in oshde_conf:
@@ -162,6 +167,7 @@ for domain_dir in flh.list_dirs(config.dynvirtualhosts_path):
         'volumes': oshde_conf_volumes,
         'environment': oshde_conf_environment,
         'traefik_domain': domain_dir,
+        'extra_hosts': extra_hosts,
         'http_port': oshde_conf_http_port,
         'ports': oshde_manual_ports
     })
@@ -219,6 +225,18 @@ with open('traefik.toml') as file:
                 traefik_conf.append('    [frontends.%s_front.routes.%s]' % (container_to_run['name'], container_to_run['name']))
                 traefik_conf.append('      rule = "Host:%s"' % container_to_run['traefik_domain'])
                 traefik_conf.append('')
+
+                i = 0
+                for extra_host in container_to_run['extra_hosts']:
+                    i += 1
+
+                    traefik_conf.append('  [frontends.%s_front_extra_%d]' % (container_to_run['name'], i))
+                    traefik_conf.append('    backend = "%s_back"' % container_to_run['name'])
+                    traefik_conf.append('    passHostHeader = true')
+                    traefik_conf.append('    [frontends.%s_front_extra_%d.routes.%s]' % (container_to_run['name'], i, container_to_run['name']))
+                    traefik_conf.append('      rule = "Host:%s"' % extra_host)
+                    traefik_conf.append('')
+
         else:
             traefik_conf.append(line)
 
