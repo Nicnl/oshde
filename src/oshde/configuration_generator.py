@@ -30,10 +30,15 @@ def generate_haproxy_configuration(containers_to_run):
                     acl_is_host = 'is_' + container_to_run['name']
                     hosts_deny.append('!' + acl_is_host)
 
-                    haproxy_acl.append('   acl %s hdr(host) -i %s%s' % (
+                    extra_hosts = ''
+                    for extra_host in container_to_run['extra_hosts']:
+                        extra_hosts += ' -i %s' % extra_host
+
+                    haproxy_acl.append('   acl %s hdr(host) -i %s%s%s' % (
                         acl_is_host,
                         container_to_run['haproxy_domain'],
-                        '' if config.haproxy_port == 80 else (':' + str(config.haproxy_port))
+                        '' if config.haproxy_port == 80 else (':' + str(config.haproxy_port)),
+                        extra_hosts
                     ))
 
                     if container_to_run['url_strip_prefix'] is not None:

@@ -132,6 +132,11 @@ for domain_dir in flh.list_dirs(config.dynvirtualhosts_path):
                         'mode': mode
                     }
 
+            extra_hosts = []
+            if 'extra_hosts' in oshde_conf:  # Fixme: Vérifier types
+                for extra_host in oshde_conf['extra_hosts']:
+                    extra_hosts += [extra_host]
+
             url_strip_prefix = None
             if 'url_strip_prefix' in oshde_conf:  # Fixme: Vérifier types
                 url_strip_prefix = '/' + oshde_conf['url_strip_prefix'].lstrip('/').rstrip('/') + '/'
@@ -171,6 +176,7 @@ for domain_dir in flh.list_dirs(config.dynvirtualhosts_path):
         'volumes': oshde_conf_volumes,
         'environment': oshde_conf_environment,
         'haproxy_domain': domain_dir,
+        'extra_hosts': extra_hosts,
         'url_strip_prefix': url_strip_prefix,
         'url_add_prefix': url_add_prefix,
         'http_port': oshde_conf_http_port,
@@ -219,8 +225,8 @@ with open(haproxy_cfg_path, 'w') as haproxy_cfg:
 
 # Démarrage de HAProxy
 haproxy_container = cth.run_detach_and_remove(client, 'haproxy:alpine',
-    #auto_remove=True,
-    #remove=True,
+    auto_remove=True,
+    remove=True,
     name=config.prefix + 'haproxy',
     detach=True,
     network=config.network,
