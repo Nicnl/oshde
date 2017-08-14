@@ -8,6 +8,6 @@ defaultEntryPoints = ["http"]
 
 [file]
 [backends]
-# OSHDE-BACKENDS
+# OSHDE-TRAEFIK-BACKENDS
 [frontends]
-# OSHDE-FRONTENDS
+# OSHDE-TRAEFIK-FRONTENDS

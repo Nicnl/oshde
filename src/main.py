@@ -205,7 +205,7 @@ print('# Generating configuration and starting traefik...')
 traefik_conf = []
 with open('traefik.toml') as file:
     for line in [line.rstrip() for line in file.readlines()]:
-        if line == '# OSHDE-BACKENDS':
+        if line == '# OSHDE-TRAEFIK-BACKENDS':
             for container_to_run in containers_to_run:
                 if container_to_run['http_port'] is None:
                     continue
@@ -214,7 +214,7 @@ with open('traefik.toml') as file:
                 traefik_conf.append('    [backends.%s_back.servers.server1]' % container_to_run['name'])
                 traefik_conf.append('      url = "http://%s:%d"' % (container_to_run['traefik_domain'], container_to_run['http_port']))
                 traefik_conf.append('')
-        elif line == '# OSHDE-FRONTENDS':
+        elif line == '# OSHDE-TRAEFIK-FRONTENDS':
             for container_to_run in containers_to_run:
                 if container_to_run['http_port'] is None:
                     continue
