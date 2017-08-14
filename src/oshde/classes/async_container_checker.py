@@ -24,7 +24,7 @@ class AsyncContainerChecker(Thread):
         for container_data in self.containers_to_check:
             while True:
                 try:
-                    container_name = container_data['traefik_domain']
+                    container_name = container_data['haproxy_domain']
                     containers[container_name] = self.docker_client.containers.get(container_name)
                     containers_colors[container_name] = container_data['color']
                     break

@@ -26,4 +26,4 @@ dynvirtualhosts_path = os.getenv('OSHDE_DYNVIRTUALHOSTS_PATH', '/dynvirtualhosts
 # Nom du fichier de conf pour: expositions de ports, montages de volumes, variables d'environnement
 dynvirtualhosts_config_file_name = os.getenv('OSHDE_DYNVIRTUALHOSTS_CONFIG_FILE_NAME', '.oshde.yml')
 
-traefik_port = int(os.getenv('OSHDE_TRAEFIK_PORT', '80'))
+haproxy_port = int(os.getenv('OSHDE_HAPROXY_PORT', '80'))

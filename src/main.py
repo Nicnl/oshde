@@ -64,7 +64,7 @@ for domain_dir in flh.list_dirs(config.dynvirtualhosts_path):
 
             # Todo: Faire un fichier de lecture de conf PAR version, pour scaler correctement lors des évolutions
 
-            # Fichier de conf: port HTTP à transférer à Traefik
+            # Fichier de conf: port HTTP à transférer à HAProxy
             if 'http_port' not in oshde_conf:
                 oshde_conf_http_port = None
             else:
@@ -166,7 +166,7 @@ for domain_dir in flh.list_dirs(config.dynvirtualhosts_path):
         'color': color,
         'volumes': oshde_conf_volumes,
         'environment': oshde_conf_environment,
-        'traefik_domain': domain_dir,
+        'haproxy_domain': domain_dir,
         'extra_rules': extra_rules,
         'http_port': oshde_conf_http_port,
         'ports': oshde_manual_ports
@@ -183,7 +183,7 @@ for container_to_run in containers_to_run:
     async_container_runner = AsyncContainerRunner(docker_client=client, logs_queue=logs_queue, container_to_run=container_to_run,
         auto_remove=True,
         remove=True,
-        name=container_to_run['traefik_domain'],
+        name=container_to_run['haproxy_domain'],
         detach=True,
         network=config.network,
         volumes=container_to_run['volumes'],
@@ -197,72 +197,72 @@ for container_to_run in containers_to_run:
     async_container_runner.start()
 
     time.sleep(0.25)
-    print('%s  => %s%s' % (container_to_run['color'], container_to_run['traefik_domain'], color_helper.reset))
+    print('%s  => %s%s' % (container_to_run['color'], container_to_run['haproxy_domain'], color_helper.reset))
 
-print('# Generating configuration and starting traefik...')
+print('# Generating configuration and starting haproxy...')
 
-# Génération de la configuration Traefik
-traefik_conf = []
-with open('traefik.toml') as file:
+# Génération de la configuration HAProxy
+haproxy_conf = []
+with open('haproxy.toml') as file:
     for line in [line.rstrip() for line in file.readlines()]:
         if line == '# OSHDE-BACKENDS':
             for container_to_run in containers_to_run:
                 if container_to_run['http_port'] is None:
                     continue
 
-                traefik_conf.append('  [backends.%s_back]' % container_to_run['name'])
-                traefik_conf.append('    [backends.%s_back.servers.server1]' % container_to_run['name'])
-                traefik_conf.append('      url = "http://%s:%d"' % (container_to_run['traefik_domain'], container_to_run['http_port']))
-                traefik_conf.append('')
+                haproxy_conf.append('  [backends.%s_back]' % container_to_run['name'])
+                haproxy_conf.append('    [backends.%s_back.servers.server1]' % container_to_run['name'])
+                haproxy_conf.append('      url = "http://%s:%d"' % (container_to_run['haproxy_domain'], container_to_run['http_port']))
+                haproxy_conf.append('')
         elif line == '# OSHDE-FRONTENDS':
             for container_to_run in containers_to_run:
                 if container_to_run['http_port'] is None:
                     continue
 
-                traefik_conf.append('  [frontends.%s_front]' % container_to_run['name'])
-                traefik_conf.append('    backend = "%s_back"' % container_to_run['name'])
-                traefik_conf.append('    passHostHeader = true')
-                traefik_conf.append('    [frontends.%s_front.routes.%s]' % (container_to_run['name'], container_to_run['name']))
-                traefik_conf.append('      rule = "Host:%s"' % container_to_run['traefik_domain'])
-                traefik_conf.append('')
+                haproxy_conf.append('  [frontends.%s_front]' % container_to_run['name'])
+                haproxy_conf.append('    backend = "%s_back"' % container_to_run['name'])
+                haproxy_conf.append('    passHostHeader = true')
+                haproxy_conf.append('    [frontends.%s_front.routes.%s]' % (container_to_run['name'], container_to_run['name']))
+                haproxy_conf.append('      rule = "Host:%s"' % container_to_run['haproxy_domain'])
+                haproxy_conf.append('')
 
                 i = 0
                 for extra_rule in container_to_run['extra_rules']:
                     i += 1
 
-                    traefik_conf.append('  [frontends.%s_front_extra_%d]' % (container_to_run['name'], i))
-                    traefik_conf.append('    backend = "%s_back"' % container_to_run['name'])
-                    traefik_conf.append('    passHostHeader = true')
-                    traefik_conf.append('    [frontends.%s_front_extra_%d.routes.%s_extra_%d]' % (container_to_run['name'], i, container_to_run['name'], i))
-                    traefik_conf.append('      rule = "%s"' % extra_rule)
-                    traefik_conf.append('')
+                    haproxy_conf.append('  [frontends.%s_front_extra_%d]' % (container_to_run['name'], i))
+                    haproxy_conf.append('    backend = "%s_back"' % container_to_run['name'])
+                    haproxy_conf.append('    passHostHeader = true')
+                    haproxy_conf.append('    [frontends.%s_front_extra_%d.routes.%s_extra_%d]' % (container_to_run['name'], i, container_to_run['name'], i))
+                    haproxy_conf.append('      rule = "%s"' % extra_rule)
+                    haproxy_conf.append('')
 
         else:
-            traefik_conf.append(line)
+            haproxy_conf.append(line)
 
-traefik_path = os.path.join(config.dynvirtualhosts_path, config.prefix + 'traefik')
-if not os.path.exists(traefik_path):
-    os.makedirs(traefik_path)
+haproxy_path = os.path.join(config.dynvirtualhosts_path, config.prefix + 'haproxy')
+if not os.path.exists(haproxy_path):
+    os.makedirs(haproxy_path)
 
-traefik_toml_path = os.path.join(traefik_path, 'traefik.toml')
-with open(traefik_toml_path, 'w') as traefik_toml:
-    traefik_toml.write('\n'.join(traefik_conf))
+haproxy_toml_path = os.path.join(haproxy_path, 'haproxy.toml')
+with open(haproxy_toml_path, 'w') as haproxy_toml:
+    haproxy_toml.write('\n'.join(haproxy_conf))
 
-# Démarrage de Traefik
-traefik_container = cth.run_detach_and_remove(client, 'traefik',
+# Démarrage de HAProxy
+haproxy_container = cth.run_detach_and_remove(client, 'haproxy:alpine',
     auto_remove=True,
     remove=True,
-    name=config.prefix + 'traefik',
+    name=config.prefix + 'haproxy',
     detach=True,
     network=config.network,
     volumes={
-        os.path.join(config.dynvirtualhosts_host, config.prefix + 'traefik', 'traefik.toml'): {
-            'bind': '/etc/traefik/traefik.toml',
+        os.path.join(config.dynvirtualhosts_host, config.prefix + 'haproxy', 'haproxy.toml'): {
+            'bind': '/etc/haproxy/haproxy.toml',
             'mode': 'ro'
         }
     },
     ports={
-        '80/tcp': config.traefik_port
+        '80/tcp': config.haproxy_port
     },
     labels={
         'oshde': 'oshde'  # Fixme: Déplacer ça vers fichier de configuration
