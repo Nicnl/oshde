@@ -132,10 +132,13 @@ for domain_dir in flh.list_dirs(config.dynvirtualhosts_path):
                         'mode': mode
                     }
 
-            extra_rules = []
-            if 'extra_rules' in oshde_conf:
-                for extra_rule in oshde_conf['extra_rules']:  # Fixme: Vérifier types
-                    extra_rules += [extra_rule]
+            url_strip_prefix = None
+            if 'url_strip_prefix' in oshde_conf:  # Fixme: Vérifier types
+                url_strip_prefix = '/' + oshde_conf['url_strip_prefix'].lstrip('/').rstrip('/') + '/'
+
+            url_add_prefix = None
+            if 'url_add_prefix' in oshde_conf:  # Fixme: Vérifier types
+                url_add_prefix = '/' + oshde_conf['url_add_prefix'].lstrip('/').rstrip('/') + '/'
 
             # Fichier de conf: variables d'environnement
             oshde_conf_environment = {}
@@ -168,7 +171,8 @@ for domain_dir in flh.list_dirs(config.dynvirtualhosts_path):
         'volumes': oshde_conf_volumes,
         'environment': oshde_conf_environment,
         'haproxy_domain': domain_dir,
-        'extra_rules': extra_rules,
+        'url_strip_prefix': url_strip_prefix,
+        'url_add_prefix': url_add_prefix,
         'http_port': oshde_conf_http_port,
         'ports': oshde_manual_ports
     })

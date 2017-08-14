@@ -36,6 +36,37 @@ def generate_haproxy_configuration(containers_to_run):
                         '' if config.haproxy_port == 80 else (':' + str(config.haproxy_port))
                     ))
 
+                    if container_to_run['url_strip_prefix'] is not None:
+                        haproxy_acl.append('   acl beg_%s path_beg -i %s if %s' % (
+                            acl_is_host,
+                            container_to_run['url_strip_prefix'],
+                            acl_is_host
+                        ))
+                        haproxy_acl.append('   http-request deny if %s !beg_%s' % (
+                            acl_is_host,
+                            acl_is_host
+                        ))
+                        if container_to_run['url_add_prefix'] is not None:
+                            haproxy_acl.append('   http-request set-path %s%%[path,regsub(^%s,)] if %s beg_%s' % (
+                                container_to_run['url_add_prefix'],
+                                container_to_run['url_strip_prefix'],
+                                acl_is_host,
+                                acl_is_host
+                            ))
+                        else:
+                            haproxy_acl.append('   http-request set-path /%%[path,regsub(^%s,)] if %s beg_%s' % (
+                                container_to_run['url_strip_prefix'],
+                                acl_is_host,
+                                acl_is_host
+                            ))
+
+                    if container_to_run['url_add_prefix'] is not None:
+                        if container_to_run['url_strip_prefix'] is None:
+                            haproxy_acl.append('   http-request set-path %s if %s' % (
+                                container_to_run['url_add_prefix'] + '%[path,regsub(^/,)]',
+                                acl_is_host
+                            ))
+
                     haproxy_uses.append('   use_backend %s if %s' % (
                         container_to_run['name'],
                         acl_is_host
