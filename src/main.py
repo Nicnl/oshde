@@ -12,6 +12,7 @@ import os
 from queue import Queue
 from oshde.classes.async_container_runner import AsyncContainerRunner
 from oshde.classes.async_container_checker import AsyncContainerChecker
+import oshde.configuration_generator as cgen
 import docker.models.containers
 
 # Fixme: Virer cette ligne quand https://github.com/docker/docker-py/pull/1545 aura été mergé
@@ -202,62 +203,26 @@ for container_to_run in containers_to_run:
 print('# Generating configuration and starting haproxy...')
 
 # Génération de la configuration HAProxy
-haproxy_conf = []
-with open('haproxy.toml') as file:
-    for line in [line.rstrip() for line in file.readlines()]:
-        if line == '# OSHDE-BACKENDS':
-            for container_to_run in containers_to_run:
-                if container_to_run['http_port'] is None:
-                    continue
-
-                haproxy_conf.append('  [backends.%s_back]' % container_to_run['name'])
-                haproxy_conf.append('    [backends.%s_back.servers.server1]' % container_to_run['name'])
-                haproxy_conf.append('      url = "http://%s:%d"' % (container_to_run['haproxy_domain'], container_to_run['http_port']))
-                haproxy_conf.append('')
-        elif line == '# OSHDE-FRONTENDS':
-            for container_to_run in containers_to_run:
-                if container_to_run['http_port'] is None:
-                    continue
-
-                haproxy_conf.append('  [frontends.%s_front]' % container_to_run['name'])
-                haproxy_conf.append('    backend = "%s_back"' % container_to_run['name'])
-                haproxy_conf.append('    passHostHeader = true')
-                haproxy_conf.append('    [frontends.%s_front.routes.%s]' % (container_to_run['name'], container_to_run['name']))
-                haproxy_conf.append('      rule = "Host:%s"' % container_to_run['haproxy_domain'])
-                haproxy_conf.append('')
-
-                i = 0
-                for extra_rule in container_to_run['extra_rules']:
-                    i += 1
-
-                    haproxy_conf.append('  [frontends.%s_front_extra_%d]' % (container_to_run['name'], i))
-                    haproxy_conf.append('    backend = "%s_back"' % container_to_run['name'])
-                    haproxy_conf.append('    passHostHeader = true')
-                    haproxy_conf.append('    [frontends.%s_front_extra_%d.routes.%s_extra_%d]' % (container_to_run['name'], i, container_to_run['name'], i))
-                    haproxy_conf.append('      rule = "%s"' % extra_rule)
-                    haproxy_conf.append('')
-
-        else:
-            haproxy_conf.append(line)
+haproxy_conf = cgen.generate_haproxy_configuration(containers_to_run)
 
 haproxy_path = os.path.join(config.dynvirtualhosts_path, config.prefix + 'haproxy')
 if not os.path.exists(haproxy_path):
     os.makedirs(haproxy_path)
 
-haproxy_toml_path = os.path.join(haproxy_path, 'haproxy.toml')
-with open(haproxy_toml_path, 'w') as haproxy_toml:
-    haproxy_toml.write('\n'.join(haproxy_conf))
+haproxy_cfg_path = os.path.join(haproxy_path, 'haproxy.cfg')
+with open(haproxy_cfg_path, 'w') as haproxy_cfg:
+    haproxy_cfg.write('\n'.join(haproxy_conf))
 
 # Démarrage de HAProxy
 haproxy_container = cth.run_detach_and_remove(client, 'haproxy:alpine',
-    auto_remove=True,
-    remove=True,
+    #auto_remove=True,
+    #remove=True,
     name=config.prefix + 'haproxy',
     detach=True,
     network=config.network,
     volumes={
-        os.path.join(config.dynvirtualhosts_host, config.prefix + 'haproxy', 'haproxy.toml'): {
-            'bind': '/etc/haproxy/haproxy.toml',
+        os.path.join(config.dynvirtualhosts_host, config.prefix + 'haproxy', 'haproxy.cfg'): {
+            'bind': '/usr/local/etc/haproxy/haproxy.cfg',
             'mode': 'ro'
         }
     },
