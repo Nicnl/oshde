@@ -120,7 +120,7 @@ for domain_dir in flh.list_dirs(config.dynvirtualhosts_path):
                     if mount_host_path == '.':
                         mount_host_path = os.path.join(config.dynvirtualhosts_host, domain_dir)
                     elif mount_host_path.startswith('./'):  # Fixme: Voir si y'a pas plus propre, ex: os.path.???
-                        mount_host_path = mount_host_path.lstrip('./')
+                        mount_host_path = mount_host_path[2:]
 
                         # Ici on n'utilise pas os.path car on deal avec un chemin du type d'OS de l'hôte != docker
                         # Fixme: voir comment faire autrement=
