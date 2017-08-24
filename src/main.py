@@ -1,5 +1,6 @@
 # coding=utf-8
 
+import threading
 import docker
 import time
 import yaml
@@ -245,12 +246,33 @@ haproxy_container = cth.run_detach_and_remove(client, 'haproxy:alpine',
 )
 
 print('# Displaying queued logs...')
+print("OQOSDIQSDQSDQSDQSDQSD")
 print('')
 
-try:
-    while True:
-        print(logs_queue.get(block=True, timeout=None))
-except KeyboardInterrupt:
+continue_main_loop = True
+
+
+def stop_oshde():
+    global continue_main_loop
+    continue_main_loop = False
     async_container_checker.ask_stop()
     async_container_checker.join()
     mmc.check_stop(client, kill=False)
+
+
+def print_logs():
+    while continue_main_loop:
+        print(logs_queue.get(block=True, timeout=None))
+
+thread_scan_stdin = threading.Thread(target=print_logs)
+thread_scan_stdin.start()
+
+while continue_main_loop:
+    try:
+        try:
+            if input('') == 'q':
+                raise KeyboardInterrupt
+        except EOFError:
+            pass
+    except KeyboardInterrupt:
+        stop_oshde()
