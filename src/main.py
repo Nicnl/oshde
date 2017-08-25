@@ -246,7 +246,6 @@ haproxy_container = cth.run_detach_and_remove(client, 'haproxy:alpine',
 )
 
 print('# Displaying queued logs...')
-print("OQOSDIQSDQSDQSDQSDQSD")
 print('')
 
 continue_main_loop = True
