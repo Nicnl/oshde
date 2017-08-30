@@ -9,6 +9,7 @@ import oshde.container_helper as cth
 import oshde.file_helper as flh
 import oshde.config as config
 import oshde.color_helper as color_helper
+import oshde.array_helper as array_helper
 import os
 from queue import Queue
 from oshde.classes.async_container_runner import AsyncContainerRunner
@@ -53,9 +54,18 @@ for domain_dir in flh.list_dirs(config.dynvirtualhosts_path):
 
     # Lecture du fichier de conf
     # Todo: Déplacer la lecture du fichier de conf vers un fichier externe
-    with open(oshde_conf_path, 'r') as stream:
+    with open(oshde_conf_path, 'r') as conf_stream:
         try:
-            oshde_conf = yaml.load(stream)
+            oshde_conf = yaml.load(conf_stream)
+
+            oshde_local_conf_path = os.path.join(config.dynvirtualhosts_path, domain_dir, config.dynvirtualhosts_local_config_file_name)
+            if os.path.isfile(oshde_local_conf_path):
+                with open(oshde_local_conf_path, 'r') as local_conf_stream:
+                    try:
+                        local_conf = yaml.load(local_conf_stream)
+                        oshde_conf = array_helper.update(oshde_conf, local_conf)
+                    except yaml.YAMLError as exc:
+                        pass
 
             # Fichier de conf: vérification de la version
             expected_version = '0.0.1'
