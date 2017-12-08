@@ -1,5 +1,6 @@
 import oshde.config as config
 
+
 def generate_haproxy_configuration(containers_to_run):
     # Génération de la configuration HAProxy
     haproxy_conf = []
@@ -11,7 +12,14 @@ def generate_haproxy_configuration(containers_to_run):
                 haproxy_uses = []
                 hosts_deny = []
 
-                for container_to_run in containers_to_run:
+                containers_left = list(containers_to_run)
+                while len(containers_left) > 0:
+                    container_to_run = None
+                    for container_to_test in containers_left:
+                        if container_to_run is None or (container_to_test['url_strip_prefix'] is not None and (container_to_run['url_strip_prefix'] is None or len(container_to_test['url_strip_prefix']) > len(container_to_run['url_strip_prefix']))):
+                            container_to_run = container_to_test
+                    containers_left.remove(container_to_run)
+
                     if container_to_run['http_port'] is None:
                         continue
 
