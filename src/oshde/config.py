@@ -21,6 +21,15 @@ dynvirtualhosts_host = '/'
 if not delete_mode:
     dynvirtualhosts_host += os.getenv('OSHDE_DYNVIRTUALHOSTS_HOST').rstrip('/').rstrip('\\').replace(':', '').replace('\\', '/').lstrip('/')
 
+    # Workaround:
+    #   Docker for Windows v17.12 (win46) changed the mounted host drives location
+    #     - Before :          /C/Users/me/Desktop/...
+    #     - After  : /host_mnt/c/Users/me/Desktop/...
+
+    if os.getenv('OSHDE_WINDOWS_WORKAROUND', '1') == '1':
+        dynvirtualhosts_host = dynvirtualhosts_host[0] + dynvirtualhosts_host[1].lower() + dynvirtualhosts_host[2:]
+        dynvirtualhosts_host = '/host_mnt' + dynvirtualhosts_host
+
 dynvirtualhosts_path = os.getenv('OSHDE_DYNVIRTUALHOSTS_PATH', '/dynvirtualhosts').rstrip('/')
 
 # Nom du fichier de conf pour: expositions de ports, montages de volumes, variables d'environnement
