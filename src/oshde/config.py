@@ -26,7 +26,7 @@ if not delete_mode:
     #     - Before :          /C/Users/me/Desktop/...
     #     - After  : /host_mnt/c/Users/me/Desktop/...
 
-    if os.getenv('OSHDE_WINDOWS_WORKAROUND', '1') == '1':
+    if os.getenv('OSHDE_WINDOWS_WORKAROUND', '0') == '1':
         dynvirtualhosts_host = dynvirtualhosts_host[0] + dynvirtualhosts_host[1].lower() + dynvirtualhosts_host[2:]
         dynvirtualhosts_host = '/host_mnt' + dynvirtualhosts_host
 
